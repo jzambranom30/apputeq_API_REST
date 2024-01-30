@@ -28,18 +28,18 @@ if($token) {
         exit();
     }
 
-    $fechaexiste = leerRegistro($conn, 'cita', "fecha = '{$fecha}'");
-    $horaexiste = leerRegistro($conn, 'cita', "hora = '{$hora}'");
+    $citaExistente = leerRegistro($conn, 'cita', "fecha = '{$fecha}' AND hora = '{$hora}'");
 
-    if (($fechaexiste && !$horaexiste) || (!$fechaexiste && $horaexiste)) {
+    if (!$citaExistente) {
+        // No existe una cita con la misma fecha, hora y personaId, entonces se puede crear una nueva.
         $cita = [
             'fecha' => $fecha,
             'hora' => $hora,
             'personaId' => $id
         ];
-    
+
         $result = crearRegistro($conn, 'cita', $cita);
-    
+
         if ($result) {
             echo json_encode(["success" => "Su cita ha sido registrado con éxito"]);
         } else {
@@ -48,6 +48,7 @@ if($token) {
     } else {
         echo json_encode(["error" => "Fecha y hora ocupadas, seleccione una fecha u horario diferente"]);
     }
+
 
 } else {
     echo json_encode(["error" => "No ha iniciado sesión"]);
