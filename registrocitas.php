@@ -7,7 +7,7 @@ $token = validarToken($conn);
 
 if($token) {
     $user = leerRegistro($conn, 'usuario', "token = '{$token}'");
-    $id = $user['datos']['personaId'];
+    $id = $user[0]['personaId'];
 
     // Recibir datos del formulario
     $fecha = isset($_POST['fecha']) ? mysqli_real_escape_string($conn, $_POST['fecha']) : null;
@@ -28,18 +28,25 @@ if($token) {
         exit();
     }
 
-    $cita = [
-        'fecha' => $fecha,
-        'hora' => $hora,
-        'personaId' => $id
-    ];
+    $fechaexiste = leerRegistro($conn, 'cita', "fecha = '{$fecha}'");
+    $horaexiste = leerRegistro($conn, 'cita', "hora = '{$hora}'");
 
-    $result = crearRegistro($conn, 'cita', $cita);
-
-    if ($result) {
-        echo json_encode(["success" => "Su cita ha sido registrado con éxito"]);
+    if (($fechaexiste && !$horaexiste) || (!$fechaexiste && $horaexiste)) {
+        $cita = [
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'personaId' => $id
+        ];
+    
+        $result = crearRegistro($conn, 'cita', $cita);
+    
+        if ($result) {
+            echo json_encode(["success" => "Su cita ha sido registrado con éxito"]);
+        } else {
+            echo json_encode(["error" => "Error al registrar cita"]);
+        }
     } else {
-        echo json_encode(["error" => "Error al registrar cita"]);
+        echo json_encode(["error" => "Fecha y hora ocupadas, seleccione una fecha u horario diferente"]);
     }
 
 } else {
